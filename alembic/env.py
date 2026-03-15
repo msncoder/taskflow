@@ -11,9 +11,9 @@ from app.core.config import settings
 from app.db.base import Base
 
 # Import all models here for autogenerate support
+from app.features.company import models as company_models  # noqa: F401
+from app.features.user import models as user_models  # noqa: F401
 # from app.features.auth import models  # noqa: F401
-# from app.features.company import models  # noqa: F401
-# from app.features.user import models  # noqa: F401
 # from app.features.invitation import models  # noqa: F401
 # from app.features.task import models  # noqa: F401
 # from app.features.comment import models  # noqa: F401

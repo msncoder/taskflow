@@ -34,6 +34,25 @@ FastAPI-based backend for TaskFlow SaaS platform.
 - [x] Initialized Alembic (`alembic init alembic`)
 - [x] Configured `alembic/env.py` for async engine and Neon DB
 
+### Task 0.3 — Core Security & Dependencies
+
+- [x] Created `app/core/security.py`:
+  - `hash_password(plain: str) → str`
+  - `verify_password(plain: str, hashed: str) → bool`
+  - `create_access_token(data: dict) → str`
+  - `create_refresh_token(data: dict) → str`
+  - `decode_token(token: str) → dict`
+- [x] Created `app/core/dependencies.py`:
+  - `get_db()` → yields `AsyncSession`
+  - `get_current_user()` → decodes JWT, returns `User`
+  - `require_role(*roles)` → role-based guard
+- [x] Created `app/core/exceptions.py` — custom 401, 403, 404 handlers
+- [x] Created `app/features/company/models.py` — Company model
+- [x] Created `app/features/user/models.py` — User model with roles
+- [x] Generated and applied initial Alembic migration
+
+**✔ Deliverable:** `GET /health` returns `{"status": "ok"}`. DB connects. Alembic can run migrations.
+
 ---
 
 ## 📁 Project Structure
@@ -42,28 +61,40 @@ FastAPI-based backend for TaskFlow SaaS platform.
 backend/
 ├── app/
 │   ├── core/
-│   │   ├── __init__.py
-│   │   └── config.py          # Settings via pydantic-settings
+│   │   ├── __init__.py            # Exports all core modules
+│   │   ├── config.py              # Settings via pydantic-settings
+│   │   ├── security.py            # Password hashing & JWT tokens
+│   │   ├── dependencies.py        # get_db, get_current_user, require_role
+│   │   └── exceptions.py          # Custom HTTP exceptions
 │   ├── db/
 │   │   ├── __init__.py
-│   │   ├── base.py            # SQLAlchemy Base
-│   │   └── session.py         # Async engine & session factory
+│   │   ├── base.py                # SQLAlchemy Base (AsyncAttrs)
+│   │   └── session.py             # Async engine & session factory
 │   ├── features/
-│   │   └── __init__.py        # Feature modules (coming soon)
+│   │   ├── __init__.py
+│   │   ├── company/
+│   │   │   ├── __init__.py
+│   │   │   └── models.py          # Company model
+│   │   ├── user/
+│   │   │   ├── __init__.py
+│   │   │   └── models.py          # User model with roles
+│   │   └── auth/
+│   │       └── __init__.py
 │   ├── __init__.py
-│   └── main.py                # FastAPI entry point
+│   └── main.py                    # FastAPI entry point + exception handlers
 ├── alembic/
-│   ├── env.py                 # Alembic async config
-│   └── versions/              # Migration scripts
-├── tests/                     # Test suite (coming soon)
-├── .env                       # Environment variables (DO NOT COMMIT)
-├── .env.example               # Example environment template
-├── .gitignore                 # Git ignore rules
-├── alembic.ini                # Alembic configuration
-├── docker-compose.yml         # Local PostgreSQL
-├── pyproject.toml             # Poetry dependencies
-├── poetry.lock                # Locked dependencies
-└── requirements.txt           # Pip requirements (alternative)
+│   ├── env.py                     # Alembic async config
+│   ├── versions/                  # Migration scripts
+│   └── README
+├── tests/                         # Test suite (coming soon)
+├── .env                           # Environment variables (DO NOT COMMIT)
+├── .env.example                   # Example environment template
+├── .gitignore                     # Git ignore rules
+├── alembic.ini                    # Alembic configuration
+├── docker-compose.yml             # Local PostgreSQL
+├── pyproject.toml                 # Poetry dependencies
+├── poetry.lock                    # Locked dependencies
+└── requirements.txt               # Pip requirements (alternative)
 ```
 
 ---
@@ -103,8 +134,8 @@ SECRET_KEY=<generate-with: poetry run python -c "import secrets; print(secrets.t
 # Check migration status
 poetry run alembic check
 
-# Create initial migration
-poetry run alembic revision --autogenerate -m "initial"
+# Create new migration (when models change)
+poetry run alembic revision --autogenerate -m "description"
 
 # Apply migrations
 poetry run alembic upgrade head
@@ -179,11 +210,94 @@ poetry run pytest tests/test_auth.py
 - `python-jose[cryptography]` — JWT handling
 - `passlib[bcrypt]` — Password hashing
 - `python-multipart` — Form data
+- `httpx` — Async HTTP client
+- `psycopg2-binary` — PostgreSQL sync driver (for Alembic)
 
 **Development:**
 - `pytest` — Testing framework
 - `pytest-asyncio` — Async test support
-- `httpx` — Async HTTP client
+
+---
+
+## 🗄️ Database Models
+
+### Company
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `name` | String(255) | Company name |
+| `slug` | String(100) | Unique slug (auto-generated) |
+| `created_at` | DateTime | Creation timestamp |
+
+### User
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `email` | String(255) | Unique email |
+| `full_name` | String(255) | User's full name |
+| `hashed_password` | String(255) | Bcrypt hashed password |
+| `role` | Enum | `admin`, `manager`, `employee` |
+| `company_id` | UUID | FK to companies |
+| `is_active` | Boolean | Account status |
+| `created_at` | DateTime | Creation timestamp |
+
+**User Roles:**
+- `admin` — Full access to company
+- `manager` — Can invite employees, create tasks
+- `employee` — Can view assigned tasks, toggle complete
+
+---
+
+## 🔒 Security Features
+
+### Password Hashing
+```python
+from app.core.security import hash_password, verify_password
+
+hashed = hash_password("my_secure_password")
+is_valid = verify_password("my_secure_password", hashed)
+```
+
+### JWT Tokens
+```python
+from app.core.security import create_access_token, create_refresh_token, verify_token
+
+access = create_access_token({"sub": user_id})
+refresh = create_refresh_token({"sub": user_id})
+payload = verify_token(access, token_type="access")
+```
+
+### Protected Endpoints
+```python
+from fastapi import Depends
+from app.core.dependencies import get_current_user, require_role, CurrentUser, AdminUser
+
+@app.get("/protected")
+async def protected(current_user: CurrentUser):
+    return {"user": current_user.email}
+
+@app.get("/admin-only")
+async def admin_only(admin: AdminUser):
+    return {"message": "Admin access granted"}
+
+@app.get("/manager-or-admin")
+async def manager_or_admin(user: CurrentUser = Depends(require_role("manager", "admin"))):
+    return {"message": "Manager or admin access"}
+```
+
+### Custom Exceptions
+```python
+from app.core.exceptions import NotFoundException, ForbiddenException
+
+@app.get("/items/{item_id}")
+async def get_item(item_id: str):
+    item = await get_item_from_db(item_id)
+    if not item:
+        raise NotFoundException("Item not found")
+    return item
+```
 
 ---
 
@@ -210,22 +324,33 @@ postgresql+asyncpg://taskflow:taskflow_password@localhost:5432/taskflow
 ## 🔜 Next Steps
 
 ### Phase 1 — Feature: Company
-- Company model, schemas, service, router
+- [ ] Company schemas (Create, Read)
+- [ ] Company service layer
+- [ ] Company router (CRUD endpoints)
 
 ### Phase 2 — Feature: Auth
-- User model, registration, login, JWT tokens
+- [ ] Auth schemas (Register, Login, Token)
+- [ ] Auth service (register, login, refresh tokens)
+- [ ] Auth router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
 
 ### Phase 3 — Feature: Invitation
-- Invitation model, send/accept invite flow
+- [ ] Invitation model
+- [ ] Invitation schemas, service, router
+- [ ] Email sending with SMTP
 
 ### Phase 4 — Feature: User Management
-- User CRUD, role management
+- [ ] User schemas, service, router
+- [ ] User CRUD operations
+- [ ] Role management
 
 ### Phase 5 — Feature: Task Management
-- Task CRUD, role-based access
+- [ ] Task model
+- [ ] Task schemas, service, router
+- [ ] Role-based task access
 
 ### Phase 6 — Feature: Comments
-- Comment system for tasks
+- [ ] Comment model
+- [ ] Comment schemas, service, router
 
 ---
 
