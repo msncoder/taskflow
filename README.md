@@ -127,8 +127,10 @@ backend/
 │   │   ├── user/
 │   │   │   ├── __init__.py
 │   │   │   └── models.py          # User model with roles
-│   │   └── auth/
-│   │       └── __init__.py
+│   │   ├── auth/
+│   │   │   ├── __init__.py
+│   │   │   └── schemas.py         # Auth request/response schemas
+│   │   └── __pycache__/
 │   ├── __init__.py
 │   └── main.py                    # FastAPI entry point + exception handlers
 ├── alembic/
@@ -380,10 +382,15 @@ postgresql+asyncpg://taskflow:taskflow_password@localhost:5432/taskflow
 - [x] Task 1.4 — Company Router
 
 ### Phase 2 — Feature: Auth
-- [ ] User model (already created)
-- [ ] Auth schemas (Register, Login, Token)
-- [ ] Auth service (register, login, refresh tokens)
-- [ ] Auth router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
+
+- [x] Task 2.1 — User Model (already created in Task 0.3)
+- [x] Task 2.2 — Auth Schemas
+  - `AdminRegisterRequest` — email, full_name, password, company_name
+  - `LoginRequest` — email, password
+  - `TokenResponse` — access_token, refresh_token, token_type
+  - `RefreshTokenRequest` — refresh_token
+- [ ] Task 2.3 — Auth Service (register, login, refresh tokens)
+- [ ] Task 2.4 — Auth Router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
 
 ### Phase 3 — Feature: Invitation
 - [ ] Invitation model
