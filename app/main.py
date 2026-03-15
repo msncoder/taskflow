@@ -18,6 +18,12 @@ from app.core.exceptions import (
     sqlalchemy_exception_handler,
     generic_exception_handler,
 )
+
+# Import all models to ensure SQLAlchemy relationships are configured
+from app.features.company import models as company_models  # noqa: F401
+from app.features.user import models as user_models  # noqa: F401
+from app.features.invitation import models as invitation_models  # noqa: F401
+
 from app.db.session import close_db
 from app.features.company.router import router as company_router
 from app.features.auth.router import router as auth_router
