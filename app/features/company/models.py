@@ -9,6 +9,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.features.user.models import User
+    from app.features.invitation.models import Invitation
 
 
 class Company(Base):
@@ -31,6 +32,10 @@ class Company(Base):
 
     # Relationships
     users: Mapped[list["User"]] = relationship(  # noqa: F821
+        back_populates="company",
+        lazy="selectin",
+    )
+    invitations: Mapped[list["Invitation"]] = relationship(  # noqa: F821
         back_populates="company",
         lazy="selectin",
     )
