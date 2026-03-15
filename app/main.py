@@ -20,12 +20,13 @@ from app.core.exceptions import (
 )
 from app.db.session import close_db
 from app.features.company.router import router as company_router
+from app.features.auth.router import router as auth_router
 
 
 app = FastAPI(
     title="TaskFlow SaaS",
     description="TaskFlow SaaS API - Task Management Platform",
-    version="0.2.0",
+    version="0.4.0",
 )
 
 
@@ -42,6 +43,7 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # Register feature routers
 app.include_router(company_router, prefix="/api/v1")
+app.include_router(auth_router, prefix="/api/v1")
 
 
 # Lifecycle events

@@ -126,11 +126,14 @@ backend/
 │   │   │   └── router.py          # GET /company/me
 │   │   ├── user/
 │   │   │   ├── __init__.py
-│   │   │   └── models.py          # User model with roles
+│   │   │   ├── models.py          # User model with roles
+│   │   │   ├── schemas.py         # UserRead, UserUpdate
+│   │   │   └── service.py         # get_user_by_id, get_user_by_email
 │   │   ├── auth/
 │   │   │   ├── __init__.py
 │   │   │   ├── schemas.py         # Auth request/response schemas
-│   │   │   └── service.py         # register_admin, login, refresh_tokens
+│   │   │   ├── service.py         # register_admin, login, refresh_tokens
+│   │   │   └── router.py          # POST /register, /login, /refresh, GET /me
 │   │   └── __pycache__/
 │   ├── __init__.py
 │   └── main.py                    # FastAPI entry point + exception handlers
@@ -394,7 +397,13 @@ postgresql+asyncpg://taskflow:taskflow_password@localhost:5432/taskflow
   - `register_admin()` — create admin + company, return tokens
   - `login()` — authenticate and return tokens
   - `refresh_tokens()` — generate new token pair
-- [ ] Task 2.4 — Auth Router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
+- [x] Task 2.4 — Auth Router
+  - `POST /api/v1/auth/register` — Admin signup
+  - `POST /api/v1/auth/login` — Returns tokens
+  - `POST /api/v1/auth/refresh` — Refresh access token
+  - `GET /api/v1/auth/me` — Current user info (requires JWT)
+
+**✔ Deliverable:** Admin can register, login, get tokens, and call `/auth/me`.
 
 ### Phase 3 — Feature: Invitation
 - [ ] Invitation model
@@ -423,4 +432,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.4.0*
+*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.5.0*

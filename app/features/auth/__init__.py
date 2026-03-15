@@ -10,6 +10,7 @@ from app.features.auth.service import (
     refresh_tokens,
     get_user_by_email,
 )
+from app.features.auth.router import router
 
 __all__ = [
     "AdminRegisterRequest",
@@ -20,4 +21,5 @@ __all__ = [
     "login",
     "refresh_tokens",
     "get_user_by_email",
+    "router",
 ]
