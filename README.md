@@ -129,7 +129,8 @@ backend/
 │   │   │   └── models.py          # User model with roles
 │   │   ├── auth/
 │   │   │   ├── __init__.py
-│   │   │   └── schemas.py         # Auth request/response schemas
+│   │   │   ├── schemas.py         # Auth request/response schemas
+│   │   │   └── service.py         # register_admin, login, refresh_tokens
 │   │   └── __pycache__/
 │   ├── __init__.py
 │   └── main.py                    # FastAPI entry point + exception handlers
@@ -389,7 +390,10 @@ postgresql+asyncpg://taskflow:taskflow_password@localhost:5432/taskflow
   - `LoginRequest` — email, password
   - `TokenResponse` — access_token, refresh_token, token_type
   - `RefreshTokenRequest` — refresh_token
-- [ ] Task 2.3 — Auth Service (register, login, refresh tokens)
+- [x] Task 2.3 — Auth Service
+  - `register_admin()` — create admin + company, return tokens
+  - `login()` — authenticate and return tokens
+  - `refresh_tokens()` — generate new token pair
 - [ ] Task 2.4 — Auth Router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
 
 ### Phase 3 — Feature: Invitation
@@ -419,4 +423,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.3.0*
+*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.4.0*

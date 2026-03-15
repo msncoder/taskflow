@@ -4,10 +4,20 @@ from app.features.auth.schemas import (
     TokenResponse,
     RefreshTokenRequest,
 )
+from app.features.auth.service import (
+    register_admin,
+    login,
+    refresh_tokens,
+    get_user_by_email,
+)
 
 __all__ = [
     "AdminRegisterRequest",
     "LoginRequest",
     "TokenResponse",
     "RefreshTokenRequest",
+    "register_admin",
+    "login",
+    "refresh_tokens",
+    "get_user_by_email",
 ]
