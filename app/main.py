@@ -19,12 +19,13 @@ from app.core.exceptions import (
     generic_exception_handler,
 )
 from app.db.session import close_db
+from app.features.company.router import router as company_router
 
 
 app = FastAPI(
     title="TaskFlow SaaS",
     description="TaskFlow SaaS API - Task Management Platform",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
@@ -37,6 +38,10 @@ app.add_exception_handler(BadRequestException, bad_request_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 app.add_exception_handler(SQLAlchemyError, sqlalchemy_exception_handler)
 app.add_exception_handler(Exception, generic_exception_handler)
+
+
+# Register feature routers
+app.include_router(company_router, prefix="/api/v1")
 
 
 # Lifecycle events

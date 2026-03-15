@@ -17,7 +17,9 @@ FastAPI-based backend for TaskFlow SaaS platform.
 
 ## ✅ Completed Tasks
 
-### Task 0.1 — Initialize Project
+### Phase 0 — Bootstrap & Infrastructure
+
+#### Task 0.1 — Initialize Project
 
 - [x] Created `backend/` directory with `app/` structure
 - [x] Created `requirements.txt` with all dependencies
@@ -26,7 +28,7 @@ FastAPI-based backend for TaskFlow SaaS platform.
 - [x] Created `app/main.py` — FastAPI app with health check endpoint
 - [x] Initialized Poetry project with all dependencies
 
-### Task 0.2 — Database Setup
+#### Task 0.2 — Database Setup
 
 - [x] Created `docker-compose.yml` with PostgreSQL 15 service
 - [x] Created `app/db/base.py` — SQLAlchemy `DeclarativeBase`
@@ -34,7 +36,7 @@ FastAPI-based backend for TaskFlow SaaS platform.
 - [x] Initialized Alembic (`alembic init alembic`)
 - [x] Configured `alembic/env.py` for async engine and Neon DB
 
-### Task 0.3 — Core Security & Dependencies
+#### Task 0.3 — Core Security & Dependencies
 
 - [x] Created `app/core/security.py`:
   - `hash_password(plain: str) → str`
@@ -52,6 +54,50 @@ FastAPI-based backend for TaskFlow SaaS platform.
 - [x] Generated and applied initial Alembic migration
 
 **✔ Deliverable:** `GET /health` returns `{"status": "ok"}`. DB connects. Alembic can run migrations.
+
+---
+
+### Phase 1 — Feature: Company
+
+#### Task 1.1 — Company Model
+
+- [x] Created `features/company/models.py`:
+  - `id: UUID` (PK, auto-generated)
+  - `name: str` (company name)
+  - `slug: str` (unique, indexed)
+  - `created_at: datetime` (UTC timestamp)
+  - `users: List[User]` (relationship)
+- [x] Generated Alembic migration: `0f25ec07b753_initial_companies_and_users_tables.py`
+- [x] Migration applied to database
+
+**✔ Deliverable:** `companies` table exists in database with indexes.
+
+#### Task 1.2 — Company Schemas
+
+- [x] Created `features/company/schemas.py`:
+  - `CompanyCreate` — name validation
+  - `CompanyRead` — full company data with UUID
+
+**✔ Deliverable:** Pydantic schemas for request/response validation.
+
+#### Task 1.3 — Company Service
+
+- [x] Created `features/company/service.py`:
+  - `create_company(db, name)` — creates company with auto-generated slug
+  - `get_company_by_id(db, company_id)` — fetch company by UUID
+  - `get_company_by_slug(db, slug)` — fetch company by slug
+  - `get_user_company(db, user_id)` — fetch user's company
+  - `generate_slug(name)` — utility to create URL-friendly slugs
+
+**✔ Deliverable:** Service layer with business logic.
+
+#### Task 1.4 — Company Router
+
+- [x] Created `features/company/router.py`:
+  - `GET /api/v1/company/me` — returns current user's company (Admin only)
+- [x] Registered router in `main.py`
+
+**✔ Deliverable:** Company table exists in DB. Service layer tested.
 
 ---
 
@@ -74,7 +120,10 @@ backend/
 │   │   ├── __init__.py
 │   │   ├── company/
 │   │   │   ├── __init__.py
-│   │   │   └── models.py          # Company model
+│   │   │   ├── models.py          # Company model
+│   │   │   ├── schemas.py         # CompanyCreate, CompanyRead
+│   │   │   ├── service.py         # create_company, get_company, etc.
+│   │   │   └── router.py          # GET /company/me
 │   │   ├── user/
 │   │   │   ├── __init__.py
 │   │   │   └── models.py          # User model with roles
@@ -323,12 +372,15 @@ postgresql+asyncpg://taskflow:taskflow_password@localhost:5432/taskflow
 
 ## 🔜 Next Steps
 
-### Phase 1 — Feature: Company
-- [ ] Company schemas (Create, Read)
-- [ ] Company service layer
-- [ ] Company router (CRUD endpoints)
+### Phase 1 — Feature: Company (Complete ✅)
+
+- [x] Task 1.1 — Company Model
+- [x] Task 1.2 — Company Schemas
+- [x] Task 1.3 — Company Service
+- [x] Task 1.4 — Company Router
 
 ### Phase 2 — Feature: Auth
+- [ ] User model (already created)
 - [ ] Auth schemas (Register, Login, Token)
 - [ ] Auth service (register, login, refresh tokens)
 - [ ] Auth router (`/auth/register`, `/auth/login`, `/auth/refresh`, `/auth/me`)
@@ -360,4 +412,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.1.0*
+*Generated: 2026-03-15 | TaskFlow SaaS Backend v0.3.0*
