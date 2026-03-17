@@ -30,7 +30,7 @@ Admin Password: password123
 
 ## 📝 Test Endpoints
 
-### 1. Login (Admin)
+### 1. Login
 
 **Endpoint:** `POST /auth/login`
 
@@ -45,8 +45,8 @@ Admin Password: password123
 **Expected Response (200):**
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI...",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer"
 }
 ```
@@ -61,7 +61,7 @@ Admin Password: password123
 
 ---
 
-### 2. Get Current User Info (Protected)
+### 2. Get Current User
 
 **Endpoint:** `GET /auth/me`
 
@@ -87,12 +87,12 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 1. Click **"New Request"** → **"GET"**
 2. URL: `{{base_url}}/auth/me`
 3. Headers tab:
-   - `Authorization`: `Bearer eyJhbGciOiJIUzI1NiIs...` (paste your token)
+   - `Authorization`: `Bearer YOUR_ACCESS_TOKEN`
 4. Click **"Send"**
 
 ---
 
-### 3. Get Company Info (Admin Only)
+### 3. Get Company Info
 
 **Endpoint:** `GET /company/me`
 
@@ -120,9 +120,9 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ---
 
-## 🎯 Invitation Endpoints
+## 🎯 INVITATION ENDPOINTS
 
-### 4. Send Invitation (Admin/Manager)
+### 4. Send Invitation
 
 **Endpoint:** `POST /invitations/`
 
@@ -174,14 +174,6 @@ Content-Type: application/json
 }
 ```
 
-**403 Forbidden** (Employee trying to invite):
-```json
-{
-  "error": "Forbidden",
-  "detail": "Employees cannot send invitations"
-}
-```
-
 **409 Conflict** (Email already invited):
 ```json
 {
@@ -190,19 +182,9 @@ Content-Type: application/json
 }
 ```
 
-**Requestly Setup:**
-1. Click **"New Request"** → **"POST"**
-2. URL: `{{base_url}}/invitations/`
-3. Headers tab:
-   - `Authorization`: `Bearer YOUR_ADMIN_TOKEN`
-   - `Content-Type`: `application/json`
-4. Body (raw JSON): Paste invitation request
-5. Click **"Send"**
-6. **Save the invitation token** for acceptance testing
-
 ---
 
-### 5. List All Invitations (Admin Only)
+### 5. List Invitations
 
 **Endpoint:** `GET /invitations/`
 
@@ -235,16 +217,9 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
 ]
 ```
 
-**Requestly Setup:**
-1. Click **"New Request"** → **"GET"**
-2. URL: `{{base_url}}/invitations/`
-3. Headers tab:
-   - `Authorization`: `Bearer YOUR_ADMIN_TOKEN`
-4. Click **"Send"**
-
 ---
 
-### 6. Accept Invitation (Public - No Auth Required)
+### 6. Accept Invitation
 
 **Endpoint:** `POST /invitations/accept`
 
@@ -259,7 +234,7 @@ Content-Type: application/json
 **Request:**
 ```json
 {
-  "token": "invitation-token-from-email-or-invitation-response",
+  "token": "invitation-token-from-email",
   "full_name": "New User Name",
   "password": "securepassword123"
 }
@@ -268,8 +243,8 @@ Content-Type: application/json
 **Expected Response (200):**
 ```json
 {
-  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI...",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer"
 }
 ```
@@ -284,7 +259,7 @@ Content-Type: application/json
 }
 ```
 
-**400 Bad Request** (Already accepted):
+**400 Bad Request** (Already accepted or expired):
 ```json
 {
   "error": "Bad Request",
@@ -292,29 +267,192 @@ Content-Type: application/json
 }
 ```
 
-**400 Bad Request** (Expired):
+---
+
+## 👥 USER MANAGEMENT ENDPOINTS
+
+### 7. List Company Users
+
+**Endpoint:** `GET /users/`
+
+**Permissions:**
+- **Admin/Manager**: Can view all users in company
+- **Employee**: 403 Forbidden
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ADMIN_OR_MANAGER_TOKEN
+```
+
+**Expected Response (200):**
+```json
+[
+  {
+    "id": "user-uuid-1",
+    "email": "admin@example.com",
+    "full_name": "Admin User",
+    "role": "admin",
+    "company_id": "company-uuid",
+    "is_active": true,
+    "created_at": "2026-03-15T..."
+  },
+  {
+    "id": "user-uuid-2",
+    "email": "employee@example.com",
+    "full_name": "Employee User",
+    "role": "employee",
+    "company_id": "company-uuid",
+    "is_active": true,
+    "created_at": "2026-03-16T..."
+  }
+]
+```
+
+---
+
+### 8. Get User Detail
+
+**Endpoint:** `GET /users/{user_id}`
+
+**Permissions:**
+- **Admin/Manager**: Can view any user in their company
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ADMIN_OR_MANAGER_TOKEN
+```
+
+**Expected Response (200):**
 ```json
 {
-  "error": "Bad Request",
-  "detail": "This invitation has expired"
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "full_name": "User Name",
+  "role": "employee",
+  "company_id": "company-uuid",
+  "is_active": true,
+  "created_at": "2026-03-15T..."
 }
 ```
 
-**409 Conflict** (Email already registered):
+**Error Responses:**
+
+**404 Not Found**:
 ```json
 {
-  "error": "Conflict",
-  "detail": "Email already registered"
+  "error": "Not Found",
+  "detail": "User not found"
 }
 ```
 
-**Requestly Setup:**
-1. Click **"New Request"** → **"POST"**
-2. URL: `{{base_url}}/invitations/accept`
-3. Headers: `Content-Type: application/json`
-4. Body (raw JSON): Paste acceptance request with token
-5. Click **"Send"**
-6. **Save the tokens** to login as the new user
+---
+
+### 9. Update Own Profile
+
+**Endpoint:** `PATCH /users/me`
+
+**Permissions:**
+- **All authenticated users**: Can update their own profile
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "full_name": "Updated Full Name"
+}
+```
+
+**Expected Response (200):**
+```json
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "full_name": "Updated Full Name",
+  "role": "employee",
+  "company_id": "company-uuid",
+  "is_active": true,
+  "created_at": "2026-03-15T..."
+}
+```
+
+---
+
+### 10. Deactivate User
+
+**Endpoint:** `DELETE /users/{user_id}`
+
+**Permissions:**
+- **Admin only**: Can deactivate non-admin users
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ADMIN_TOKEN
+```
+
+**Expected Response (204):** No content (user deactivated)
+
+**Error Responses:**
+
+**403 Forbidden** (Trying to deactivate self):
+```json
+{
+  "error": "Forbidden",
+  "detail": "You cannot deactivate your own account"
+}
+```
+
+**403 Forbidden** (Trying to deactivate admin):
+```json
+{
+  "error": "Forbidden",
+  "detail": "Cannot deactivate admin users"
+}
+```
+
+**404 Not Found**:
+```json
+{
+  "error": "Not Found",
+  "detail": "User not found"
+}
+```
+
+---
+
+## 📊 Complete Test Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  AUTHENTICATION FLOW                                        │
+│                                                             │
+│  1. POST /auth/login → Save access_token                    │
+│  2. GET /auth/me → Verify user info                         │
+│  3. GET /company/me → Verify company info                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  INVITATION FLOW                                            │
+│                                                             │
+│  1. POST /invitations/ → Create invitation                  │
+│  2. GET /invitations/ → List all invitations                │
+│  3. POST /invitations/accept → Accept & create account      │
+│  4. POST /auth/login (as new user) → Verify login works     │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  USER MANAGEMENT FLOW                                       │
+│                                                             │
+│  1. GET /users/ → List all company users                    │
+│  2. GET /users/{id} → Get user details                      │
+│  3. PATCH /users/me → Update own profile                    │
+│  4. DELETE /users/{id} → Deactivate user (Admin only)       │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -328,8 +466,8 @@ Content-Type: application/json
 4. Add variables:
    ```
    base_url = http://localhost:8000/api/v1
-   admin_token = (leave empty, will be set after admin login)
-   manager_token = (leave empty, will be set after manager login)
+   access_token = (leave empty, will be set after login)
+   refresh_token = (leave empty, will be set after login)
    invitation_token = (leave empty, will be set after creating invitation)
    ```
 
@@ -342,7 +480,7 @@ In your Login request, add this **Test Script**:
 const response = pm.response.json();
 
 // Save tokens to environment
-pm.environment.set('admin_token', response.access_token);
+pm.environment.set('access_token', response.access_token);
 pm.environment.set('refresh_token', response.refresh_token);
 
 console.log('Tokens saved!');
@@ -350,72 +488,40 @@ console.log('Tokens saved!');
 
 Then in protected requests, use:
 ```
-Authorization: Bearer {{admin_token}}
-```
-
----
-
-## 📊 Complete Invitation Test Flow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  INVITATION WORKFLOW                                        │
-│                                                             │
-│  1. POST /auth/login (as admin)                             │
-│     → Save admin access_token                               │
-│                                                             │
-│  2. POST /invitations/                                      │
-│     Body: {"email": "newuser@example.com", "role": "manager"}│
-│     Headers: Authorization: Bearer {{admin_token}}          │
-│     → Save invitation token from response                   │
-│                                                             │
-│  3. GET /invitations/                                       │
-│     Headers: Authorization: Bearer {{admin_token}}          │
-│     → Verify invitation appears in list                     │
-│                                                             │
-│  4. POST /invitations/accept (no auth)                      │
-│     Body: {"token": "TOKEN", "full_name": "New User",       │
-│            "password": "password123"}                       │
-│     → Save new user tokens                                  │
-│                                                             │
-│  5. POST /auth/login (as new user)                          │
-│     → Verify new user can login                             │
-│                                                             │
-│  6. GET /auth/me (as new user)                              │
-│     Headers: Authorization: Bearer {{new_user_token}}       │
-│     → Verify user has correct role (manager/employee)       │
-└─────────────────────────────────────────────────────────────┘
+Authorization: Bearer {{access_token}}
 ```
 
 ---
 
 ## 🧪 Quick Test with cURL
 
-### Send Invitation (Admin)
+### Login
 ```bash
-# First login to get token
 curl -X POST "http://localhost:8000/api/v1/auth/login" ^
   -H "Content-Type: application/json" ^
   -d "{\"email\":\"test@example.com\",\"password\":\"password123\"}"
+```
 
-# Send invitation (replace TOKEN with access_token from login)
+### Send Invitation
+```bash
 curl -X POST "http://localhost:8000/api/v1/invitations/" ^
   -H "Content-Type: application/json" ^
-  -H "Authorization: Bearer TOKEN" ^
-  -d "{\"email\":\"newuser@example.com\",\"role\":\"manager\"}"
+  -H "Authorization: Bearer YOUR_TOKEN" ^
+  -d "{\"email\":\"newuser@example.com\",\"role\":\"employee\"}"
 ```
 
-### List Invitations (Admin)
+### List Users
 ```bash
-curl -X GET "http://localhost:8000/api/v1/invitations/" ^
-  -H "Authorization: Bearer TOKEN"
+curl -X GET "http://localhost:8000/api/v1/users/" ^
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### Accept Invitation (Public)
+### Update Profile
 ```bash
-curl -X POST "http://localhost:8000/api/v1/invitations/accept" ^
+curl -X PATCH "http://localhost:8000/api/v1/users/me" ^
   -H "Content-Type: application/json" ^
-  -d "{\"token\":\"INVITATION_TOKEN\",\"full_name\":\"New User\",\"password\":\"password123\"}"
+  -H "Authorization: Bearer YOUR_TOKEN" ^
+  -d "{\"full_name\":\"New Name\"}"
 ```
 
 ---
@@ -455,8 +561,12 @@ curl -X POST "http://localhost:8000/api/v1/invitations/accept" ^
 | Send invitation (manager) | ✅ | ❌ | ❌ |
 | Send invitation (employee) | ✅ | ✅ | ❌ |
 | List all invitations | ✅ | ❌ | ❌ |
-| Accept invitation | N/A | N/A | N/A |
+| Accept invitation | ✅ | ✅ | ✅ |
+| List company users | ✅ | ✅ | ❌ |
+| Get user detail | ✅ | ✅ | ❌ |
+| Update own profile | ✅ | ✅ | ✅ |
+| Deactivate users | ✅ | ❌ | ❌ |
 
 ---
 
-*Generated: 2026-03-16 | TaskFlow SaaS API v0.6.0*
+*Generated: 2026-03-18 | TaskFlow SaaS API v0.6.0*
