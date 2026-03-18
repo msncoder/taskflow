@@ -1,11 +1,16 @@
 import uuid
 from datetime import datetime, timezone
 from enum import Enum
+from typing import TYPE_CHECKING, List
 
 from sqlalchemy import String, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.features.company.models import Company
+    from app.features.task.models import Task
 
 
 class UserRole(str, Enum):
@@ -57,6 +62,16 @@ class User(Base):
 
     # Relationships
     company: Mapped["Company"] = relationship(back_populates="users")  # noqa: F821
+    created_tasks: Mapped[List["Task"]] = relationship(  # noqa: F821
+        back_populates="created_by",
+        foreign_keys="Task.created_by_id",
+        lazy="selectin",
+    )
+    assigned_tasks: Mapped[List["Task"]] = relationship(  # noqa: F821
+        back_populates="assigned_to",
+        foreign_keys="Task.assigned_to_id",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"
