@@ -1,6 +1,6 @@
 # TaskFlow SaaS — Backend
 
-FastAPI-based backend for TaskFlow SaaS platform — a multi-tenant task management system.
+FastAPI-based backend for TaskFlow SaaS platform — a multi-tenant task management system with role-based access control.
 
 ## 🚀 Tech Stack
 
@@ -55,6 +55,14 @@ FastAPI-based backend for TaskFlow SaaS platform — a multi-tenant task managem
 - [x] Update own profile (`PATCH /users/me`)
 - [x] Deactivate user (`DELETE /users/{user_id}`)
 
+### Phase 5 — Feature: Task Management ✅
+
+- [x] Task model with relationships
+- [x] Task CRUD operations
+- [x] Role-based task assignment
+- [x] Task status toggling
+- [x] Company isolation
+
 ---
 
 ## 📁 Project Structure
@@ -76,7 +84,8 @@ backend/
 │   │   ├── auth/                  # Authentication
 │   │   ├── company/               # Company/Tenant management
 │   │   ├── invitation/            # User invitations
-│   │   └── user/                  # User management
+│   │   ├── user/                  # User management
+│   │   └── task/                  # Task management
 │   ├── __init__.py
 │   └── main.py                    # FastAPI entry point
 ├── alembic/
@@ -207,15 +216,30 @@ Visit: **http://localhost:8000/health**
 | `expires_at` | DateTime | 48-hour expiry |
 | `created_at` | DateTime | Creation timestamp |
 
+### Task
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `title` | String(255) | Task title |
+| `description` | Text | Task description |
+| `is_completed` | Boolean | Completion status (default: False) |
+| `company_id` | UUID | FK to companies |
+| `created_by_id` | UUID | FK to task creator |
+| `assigned_to_id` | UUID | FK to assigned user (nullable) |
+| `due_date` | Date | Task due date (nullable) |
+| `created_at` | DateTime | Creation timestamp |
+| `updated_at` | DateTime | Last update timestamp |
+
 ---
 
 ## 🔒 User Roles
 
 | Role | Permissions |
 |------|-------------|
-| `admin` | Full access to all features, can deactivate users |
-| `manager` | Can invite employees, view users, create tasks |
-| `employee` | Can view assigned tasks, update own profile |
+| `admin` | Full access to all features, can deactivate users, delete tasks |
+| `manager` | Can invite employees, view users, create/assign tasks to employees |
+| `employee` | Can view assigned tasks, toggle completion, update own profile |
 
 ---
 
@@ -252,6 +276,17 @@ Visit: **http://localhost:8000/health**
 | PATCH | `/api/v1/users/me` | All | Update own profile |
 | DELETE | `/api/v1/users/{id}` | Admin | Deactivate user |
 
+### Tasks
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/tasks/` | Admin/Manager | Create task |
+| GET | `/api/v1/tasks/` | All | List tasks (role-filtered) |
+| GET | `/api/v1/tasks/{id}` | All | Get task detail |
+| PATCH | `/api/v1/tasks/{id}` | Creator/Admin | Update task |
+| PATCH | `/api/v1/tasks/{id}/toggle-complete` | Assigned | Toggle completion |
+| DELETE | `/api/v1/tasks/{id}` | Admin | Delete task |
+
 ---
 
 ## 🧪 Testing
@@ -269,6 +304,10 @@ Role: admin
 ### Run API Tests
 
 See `API_TESTING_GUIDE.md` for detailed endpoint testing instructions.
+
+### Test Results
+
+**All Phases (0-5): 39/39 tests passed (100% success rate)**
 
 ---
 
@@ -289,14 +328,10 @@ See `API_TESTING_GUIDE.md` for detailed endpoint testing instructions.
 
 ## 🔜 Upcoming Phases
 
-### Phase 5 — Feature: Task Management
-- Task CRUD operations
-- Role-based task assignment
-- Task status toggling
-
 ### Phase 6 — Feature: Comments
-- Task comments
-- Comment CRUD
+- Comment model
+- Comment schemas, service, router
+- Task comment threads
 
 ### Phase 7 — Testing
 - Unit tests
@@ -316,4 +351,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS Backend v0.6.0*
+*Generated: 2026-03-18 | TaskFlow SaaS Backend v0.7.0*

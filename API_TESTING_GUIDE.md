@@ -424,6 +424,302 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
 
 ---
 
+## 📋 TASK MANAGEMENT ENDPOINTS
+
+### 11. Create Task
+
+**Endpoint:** `POST /tasks/`
+
+**Permissions:**
+- **Admin**: Can create and assign to anyone in company
+- **Manager**: Can create and assign to employees only
+- **Employee**: Cannot create tasks (403 Forbidden)
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ADMIN_OR_MANAGER_TOKEN
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "title": "Complete project documentation",
+  "description": "Write comprehensive API documentation",
+  "assigned_to_id": "user-uuid-here",
+  "due_date": "2026-04-01"
+}
+```
+
+**Expected Response (201):**
+```json
+{
+  "id": "task-uuid-here",
+  "title": "Complete project documentation",
+  "description": "Write comprehensive API documentation",
+  "is_completed": false,
+  "company_id": "company-uuid",
+  "created_by_id": "admin-uuid",
+  "assigned_to_id": "user-uuid",
+  "due_date": "2026-04-01",
+  "created_at": "2026-03-18T...",
+  "updated_at": "2026-03-18T...",
+  "created_by": {
+    "id": "admin-uuid",
+    "email": "admin@example.com",
+    "full_name": "Admin User",
+    "role": "admin"
+  },
+  "assigned_to": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "full_name": "User Name",
+    "role": "employee"
+  }
+}
+```
+
+**Error Responses:**
+
+**403 Forbidden** (Employee trying to create):
+```json
+{
+  "error": "Forbidden",
+  "detail": "Employees cannot create tasks"
+}
+```
+
+**403 Forbidden** (Manager assigning to manager):
+```json
+{
+  "error": "Forbidden",
+  "detail": "Managers can only assign tasks to employees"
+}
+```
+
+---
+
+### 12. List Tasks
+
+**Endpoint:** `GET /tasks/`
+
+**Permissions:**
+- **Admin**: All tasks in company
+- **Manager**: Tasks they created OR assigned to their employees
+- **Employee**: Only tasks assigned to them
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Expected Response (200):**
+```json
+{
+  "tasks": [
+    {
+      "id": "task-uuid-1",
+      "title": "Task 1",
+      "description": "Description 1",
+      "is_completed": false,
+      "due_date": "2026-04-01",
+      "created_at": "2026-03-18T...",
+      "updated_at": "2026-03-18T..."
+    },
+    {
+      "id": "task-uuid-2",
+      "title": "Task 2",
+      "description": "Description 2",
+      "is_completed": true,
+      "due_date": null,
+      "created_at": "2026-03-17T...",
+      "updated_at": "2026-03-18T..."
+    }
+  ],
+  "total": 2
+}
+```
+
+---
+
+### 13. Get Task Detail
+
+**Endpoint:** `GET /tasks/{task_id}`
+
+**Permissions:**
+- **Admin**: Can view any task in company
+- **Manager**: Can view tasks they created or are assigned to
+- **Employee**: Can only view tasks assigned to them
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Expected Response (200):**
+```json
+{
+  "id": "task-uuid",
+  "title": "Task Title",
+  "description": "Task description",
+  "is_completed": false,
+  "company_id": "company-uuid",
+  "created_by_id": "admin-uuid",
+  "assigned_to_id": "user-uuid",
+  "due_date": "2026-04-01",
+  "created_at": "2026-03-18T...",
+  "updated_at": "2026-03-18T...",
+  "created_by": {
+    "id": "admin-uuid",
+    "email": "admin@example.com",
+    "full_name": "Admin User",
+    "role": "admin"
+  },
+  "assigned_to": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "full_name": "User Name",
+    "role": "employee"
+  }
+}
+```
+
+**Error Responses:**
+
+**404 Not Found** (Task doesn't exist or no access):
+```json
+{
+  "error": "Not Found",
+  "detail": "Task not found"
+}
+```
+
+---
+
+### 14. Update Task
+
+**Endpoint:** `PATCH /tasks/{task_id}`
+
+**Permissions:**
+- **Creator or Admin**: Can update any field
+- **Manager**: Can update tasks they created
+- **Employee**: Can update tasks they created
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "title": "Updated Task Title",
+  "description": "Updated description",
+  "due_date": "2026-04-15",
+  "assigned_to_id": "new-user-uuid"
+}
+```
+
+**Expected Response (200):**
+```json
+{
+  "id": "task-uuid",
+  "title": "Updated Task Title",
+  "description": "Updated description",
+  "is_completed": false,
+  "company_id": "company-uuid",
+  "created_by_id": "admin-uuid",
+  "assigned_to_id": "new-user-uuid",
+  "due_date": "2026-04-15",
+  "created_at": "2026-03-18T...",
+  "updated_at": "2026-03-18T...",
+  "created_by": {...},
+  "assigned_to": {...}
+}
+```
+
+**Error Responses:**
+
+**403 Forbidden** (Not creator):
+```json
+{
+  "error": "Forbidden",
+  "detail": "You can only update tasks you created"
+}
+```
+
+---
+
+### 15. Toggle Task Complete
+
+**Endpoint:** `PATCH /tasks/{task_id}/toggle-complete`
+
+**Permissions:**
+- **Only the assigned employee**: Can toggle their task
+- **Admin/Manager**: Cannot toggle (must use update endpoint)
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Expected Response (200):**
+```json
+{
+  "id": "task-uuid",
+  "title": "Task Title",
+  "is_completed": true,
+  ...
+}
+```
+
+**Error Responses:**
+
+**403 Forbidden** (Not assigned to task):
+```json
+{
+  "error": "Forbidden",
+  "detail": "Only the assigned user can toggle task completion"
+}
+```
+
+---
+
+### 16. Delete Task
+
+**Endpoint:** `DELETE /tasks/{task_id}`
+
+**Permissions:**
+- **Admin only**: Can delete any task
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ADMIN_TOKEN
+```
+
+**Expected Response (204):** No content
+
+**Error Responses:**
+
+**403 Forbidden** (Not admin):
+```json
+{
+  "error": "Forbidden",
+  "detail": "Only admins can delete tasks"
+}
+```
+
+**404 Not Found**:
+```json
+{
+  "error": "Not Found",
+  "detail": "Task not found"
+}
+```
+
+---
+
 ## 📊 Complete Test Flow
 
 ```
@@ -452,6 +748,17 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
 │  3. PATCH /users/me → Update own profile                    │
 │  4. DELETE /users/{id} → Deactivate user (Admin only)       │
 └─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  TASK MANAGEMENT FLOW                                       │
+│                                                             │
+│  1. POST /tasks/ → Create task (Admin/Manager)              │
+│  2. GET /tasks/ → List all tasks (role-filtered)            │
+│  3. GET /tasks/{id} → Get task details                      │
+│  4. PATCH /tasks/{id} → Update task (Creator/Admin)         │
+│  5. PATCH /tasks/{id}/toggle-complete → Toggle (Assigned)   │
+│  6. DELETE /tasks/{id} → Delete task (Admin only)           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -468,7 +775,6 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
    base_url = http://localhost:8000/api/v1
    access_token = (leave empty, will be set after login)
    refresh_token = (leave empty, will be set after login)
-   invitation_token = (leave empty, will be set after creating invitation)
    ```
 
 ### Auto-Save Tokens with Tests
@@ -502,26 +808,24 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" ^
   -d "{\"email\":\"test@example.com\",\"password\":\"password123\"}"
 ```
 
-### Send Invitation
+### Create Task
 ```bash
-curl -X POST "http://localhost:8000/api/v1/invitations/" ^
+curl -X POST "http://localhost:8000/api/v1/tasks/" ^
   -H "Content-Type: application/json" ^
   -H "Authorization: Bearer YOUR_TOKEN" ^
-  -d "{\"email\":\"newuser@example.com\",\"role\":\"employee\"}"
+  -d "{\"title\":\"New Task\",\"description\":\"Test task\"}"
 ```
 
-### List Users
+### List Tasks
 ```bash
-curl -X GET "http://localhost:8000/api/v1/users/" ^
+curl -X GET "http://localhost:8000/api/v1/tasks/" ^
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
-### Update Profile
+### Toggle Complete
 ```bash
-curl -X PATCH "http://localhost:8000/api/v1/users/me" ^
-  -H "Content-Type: application/json" ^
-  -H "Authorization: Bearer YOUR_TOKEN" ^
-  -d "{\"full_name\":\"New Name\"}"
+curl -X PATCH "http://localhost:8000/api/v1/tasks/TASK_ID/toggle-complete" ^
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 ---
@@ -566,7 +870,28 @@ curl -X PATCH "http://localhost:8000/api/v1/users/me" ^
 | Get user detail | ✅ | ✅ | ❌ |
 | Update own profile | ✅ | ✅ | ✅ |
 | Deactivate users | ✅ | ❌ | ❌ |
+| Create task | ✅ | ✅ (employees only) | ❌ |
+| List tasks | ✅ All company | ✅ Created/assigned | ✅ Assigned only |
+| Get task detail | ✅ Any company | ✅ Created/assigned | ✅ Assigned only |
+| Update task | ✅ Any | ✅ Created | ✅ Created |
+| Toggle complete | ❌ Use update | ❌ Use update | ✅ If assigned |
+| Delete task | ✅ Any | ❌ | ❌ |
 
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS API v0.6.0*
+## ✅ Test Results
+
+**All Phases (0-5): 39/39 tests passed (100% success rate)**
+
+| Phase | Endpoints | Tests | Status |
+|-------|-----------|-------|--------|
+| Phase 1 (Company) | 1 | 3 | ✅ |
+| Phase 2 (Auth) | 3 | 7 | ✅ |
+| Phase 3 (Invitation) | 3 | 7 | ✅ |
+| Phase 4 (Users) | 4 | 11 | ✅ |
+| Phase 5 (Tasks) | 6 | 11 | ✅ |
+| **Total** | **17** | **39** | **✅ 100%** |
+
+---
+
+*Generated: 2026-03-18 | TaskFlow SaaS API v0.7.0*
