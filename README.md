@@ -63,6 +63,14 @@ FastAPI-based backend for TaskFlow SaaS platform — a multi-tenant task managem
 - [x] Task status toggling
 - [x] Company isolation
 
+### Phase 6 — Feature: Comments ✅
+
+- [x] Comment model with cascade delete
+- [x] Comment schemas with nested author
+- [x] Comment service with task access validation
+- [x] Comment router (add, list, delete)
+- [x] Task access control for comments
+
 ---
 
 ## 📁 Project Structure
@@ -287,6 +295,14 @@ Visit: **http://localhost:8000/health**
 | PATCH | `/api/v1/tasks/{id}/toggle-complete` | Assigned | Toggle completion |
 | DELETE | `/api/v1/tasks/{id}` | Admin | Delete task |
 
+### Comments
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/v1/tasks/{id}/comments/` | Task access | Add comment |
+| GET | `/api/v1/tasks/{id}/comments/` | Task access | List comments |
+| DELETE | `/api/v1/tasks/{id}/comments/{id}` | Author/Admin | Delete comment |
+
 ---
 
 ## 🧪 Testing
@@ -307,7 +323,17 @@ See `API_TESTING_GUIDE.md` for detailed endpoint testing instructions.
 
 ### Test Results
 
-**All Phases (0-5): 39/39 tests passed (100% success rate)**
+**All Phases (0-6): 56/56 tests passed (100% success rate)**
+
+| Phase | Feature | Endpoints | Tests |
+|-------|---------|-----------|-------|
+| Phase 1 | Company | 1 | 3 ✅ |
+| Phase 2 | Auth | 3 | 7 ✅ |
+| Phase 3 | Invitation | 3 | 7 ✅ |
+| Phase 4 | Users | 4 | 11 ✅ |
+| Phase 5 | Tasks | 6 | 11 ✅ |
+| Phase 6 | Comments | 3 | 17 ✅ |
+| **Total** | | **20** | **56 ✅** |
 
 ---
 
@@ -351,4 +377,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS Backend v0.7.0*
+*Generated: 2026-03-18 | TaskFlow SaaS Backend v0.8.0*

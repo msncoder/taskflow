@@ -720,6 +720,154 @@ Authorization: Bearer YOUR_ADMIN_TOKEN
 
 ---
 
+## 💬 COMMENT ENDPOINTS
+
+### 17. Add Comment
+
+**Endpoint:** `POST /tasks/{task_id}/comments/`
+
+**Permissions:**
+- **Any user with read access to the task**: Can comment
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "body": "This is a test comment on the task"
+}
+```
+
+**Expected Response (201):**
+```json
+{
+  "id": "comment-uuid-here",
+  "task_id": "task-uuid-here",
+  "author_id": "user-uuid-here",
+  "body": "This is a test comment on the task",
+  "created_at": "2026-03-18T...",
+  "author": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "full_name": "User Name",
+    "role": "employee",
+    "company_id": "company-uuid",
+    "is_active": true,
+    "created_at": "2026-03-15T..."
+  }
+}
+```
+
+**Error Responses:**
+
+**404 Not Found** (Task doesn't exist or no access):
+```json
+{
+  "error": "Not Found",
+  "detail": "Task not found"
+}
+```
+
+**422 Validation Error** (Empty body):
+```json
+{
+  "error": "Validation Error",
+  "detail": [...]
+}
+```
+
+---
+
+### 18. List Comments
+
+**Endpoint:** `GET /tasks/{task_id}/comments/`
+
+**Permissions:**
+- **Any user with read access to the task**: Can view comments
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Expected Response (200):**
+```json
+{
+  "comments": [
+    {
+      "id": "comment-uuid-1",
+      "task_id": "task-uuid",
+      "author_id": "user-uuid-1",
+      "body": "First comment",
+      "created_at": "2026-03-18T10:00:00Z",
+      "author": {
+        "id": "user-uuid-1",
+        "email": "user1@example.com",
+        "full_name": "User One",
+        "role": "employee"
+      }
+    },
+    {
+      "id": "comment-uuid-2",
+      "task_id": "task-uuid",
+      "author_id": "user-uuid-2",
+      "body": "Second comment",
+      "created_at": "2026-03-18T11:00:00Z",
+      "author": {
+        "id": "user-uuid-2",
+        "email": "user2@example.com",
+        "full_name": "User Two",
+        "role": "manager"
+      }
+    }
+  ],
+  "total": 2
+}
+```
+
+**Note:** Comments are ordered by creation date (oldest first).
+
+---
+
+### 19. Delete Comment
+
+**Endpoint:** `DELETE /tasks/{task_id}/comments/{comment_id}`
+
+**Permissions:**
+- **Author**: Can delete their own comment
+- **Admin**: Can delete any comment
+
+**Headers:**
+```
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+**Expected Response (204):** No content
+
+**Error Responses:**
+
+**403 Forbidden** (Not author or admin):
+```json
+{
+  "error": "Forbidden",
+  "detail": "You can only delete your own comments"
+}
+```
+
+**404 Not Found**:
+```json
+{
+  "error": "Not Found",
+  "detail": "Comment not found"
+}
+```
+
+---
+
 ## 📊 Complete Test Flow
 
 ```
@@ -876,22 +1024,27 @@ curl -X PATCH "http://localhost:8000/api/v1/tasks/TASK_ID/toggle-complete" ^
 | Update task | ✅ Any | ✅ Created | ✅ Created |
 | Toggle complete | ❌ Use update | ❌ Use update | ✅ If assigned |
 | Delete task | ✅ Any | ❌ | ❌ |
+| Add comment | ✅ If has access | ✅ If has access | ✅ If assigned |
+| View comments | ✅ If has access | ✅ If has access | ✅ If assigned |
+| Delete own comment | ✅ | ✅ | ✅ |
+| Delete any comment | ✅ | ❌ | ❌ |
 
 ---
 
 ## ✅ Test Results
 
-**All Phases (0-5): 39/39 tests passed (100% success rate)**
+**All Phases (0-6): 56/56 tests passed (100% success rate)**
 
-| Phase | Endpoints | Tests | Status |
-|-------|-----------|-------|--------|
-| Phase 1 (Company) | 1 | 3 | ✅ |
-| Phase 2 (Auth) | 3 | 7 | ✅ |
-| Phase 3 (Invitation) | 3 | 7 | ✅ |
-| Phase 4 (Users) | 4 | 11 | ✅ |
-| Phase 5 (Tasks) | 6 | 11 | ✅ |
-| **Total** | **17** | **39** | **✅ 100%** |
+| Phase | Feature | Endpoints | Tests | Status |
+|-------|---------|-----------|-------|--------|
+| Phase 1 | Company | 1 | 3 | ✅ |
+| Phase 2 | Auth | 3 | 7 | ✅ |
+| Phase 3 | Invitation | 3 | 7 | ✅ |
+| Phase 4 | Users | 4 | 11 | ✅ |
+| Phase 5 | Tasks | 6 | 11 | ✅ |
+| Phase 6 | Comments | 3 | 17 | ✅ |
+| **Total** | | **20** | **56** | **✅ 100%** |
 
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS API v0.7.0*
+*Generated: 2026-03-18 | TaskFlow SaaS API v0.8.0*
