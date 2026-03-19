@@ -32,6 +32,7 @@ from app.features.auth.router import router as auth_router
 from app.features.invitation.router import router as invitation_router
 from app.features.user.router import router as user_router
 from app.features.task.router import router as task_router
+from app.features.comment.router import router as comment_router
 
 
 app = FastAPI(
@@ -58,6 +59,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(invitation_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(task_router, prefix="/api/v1")
+app.include_router(comment_router, prefix="/api/v1")
 
 
 # Lifecycle events
