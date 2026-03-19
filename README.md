@@ -71,6 +71,17 @@ FastAPI-based backend for TaskFlow SaaS platform — a multi-tenant task managem
 - [x] Comment router (add, list, delete)
 - [x] Task access control for comments
 
+### Phase 7 — Testing ✅
+
+- [x] pytest configuration with pytest-asyncio
+- [x] Test fixtures (users, tokens, database)
+- [x] Authentication tests (6 tests)
+- [x] Company tests (2 tests)
+- [x] Invitation tests (12 tests)
+- [x] Task tests (16 tests)
+- [x] Comment tests (6 tests)
+- [x] **Total: 42 automated tests (100% pass rate)**
+
 ---
 
 ## 📁 Project Structure
@@ -93,16 +104,26 @@ backend/
 │   │   ├── company/               # Company/Tenant management
 │   │   ├── invitation/            # User invitations
 │   │   ├── user/                  # User management
-│   │   └── task/                  # Task management
+│   │   ├── task/                  # Task management
+│   │   └── comment/               # Task comments
 │   ├── __init__.py
 │   └── main.py                    # FastAPI entry point
 ├── alembic/
 │   ├── env.py                     # Async migrations
 │   └── versions/                  # Migration scripts
+├── tests/
+│   ├── conftest.py                # Test fixtures
+│   ├── test_auth.py               # Auth tests
+│   ├── test_company.py            # Company tests
+│   ├── test_invitation.py         # Invitation tests
+│   ├── test_task.py               # Task tests
+│   └── test_comments.py           # Comment tests
 ├── .env.example                   # Environment template
 ├── requirements.txt               # Python dependencies
 ├── docker-compose.yml             # Local PostgreSQL
-└── seed_test_data.py              # Test data seeder
+├── seed_test_data.py              # Test data seeder
+├── pytest.ini                     # Pytest configuration
+└── API_TESTING_GUIDE.md           # API testing documentation
 ```
 
 ---
@@ -323,6 +344,8 @@ See `API_TESTING_GUIDE.md` for detailed endpoint testing instructions.
 
 ### Test Results
 
+#### API Endpoint Tests (Manual/Requestly)
+
 **All Phases (0-6): 56/56 tests passed (100% success rate)**
 
 | Phase | Feature | Endpoints | Tests |
@@ -334,6 +357,19 @@ See `API_TESTING_GUIDE.md` for detailed endpoint testing instructions.
 | Phase 5 | Tasks | 6 | 11 ✅ |
 | Phase 6 | Comments | 3 | 17 ✅ |
 | **Total** | | **20** | **56 ✅** |
+
+#### Automated Tests (pytest)
+
+**Phase 7: 42/42 tests passing (100% success rate)**
+
+| Test File | Tests | Coverage |
+|-----------|-------|----------|
+| `tests/test_auth.py` | 6 | Authentication |
+| `tests/test_company.py` | 2 | Company |
+| `tests/test_invitation.py` | 12 | Invitations |
+| `tests/test_task.py` | 16 | Tasks |
+| `tests/test_comments.py` | 6 | Comments |
+| **Total** | **42** | **All features** |
 
 ---
 
@@ -377,4 +413,4 @@ MIT
 
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS Backend v0.8.0*
+*Generated: 2026-03-19 | TaskFlow SaaS Backend v0.9.0*

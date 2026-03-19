@@ -868,6 +868,84 @@ Authorization: Bearer YOUR_ACCESS_TOKEN
 
 ---
 
+## 🧪 Automated Testing with pytest
+
+### Setup
+
+pytest is configured with pytest-asyncio for async test support.
+
+**Install test dependencies:**
+```bash
+pip install pytest pytest-asyncio
+```
+
+### Run Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/test_auth.py -v
+
+# Run tests matching a pattern
+pytest -v -k "test_login"
+
+# Run with coverage report
+pytest --cov=app --cov-report=html
+
+# Open coverage report
+open htmlcov/index.html  # macOS/Linux
+start htmlcov\index.html  # Windows
+```
+
+### Test Files
+
+| File | Tests | Description |
+|------|-------|-------------|
+| `tests/test_auth.py` | 6 | Authentication & authorization |
+| `tests/test_company.py` | 2 | Company endpoints |
+| `tests/test_invitation.py` | 12 | Invitation workflow |
+| `tests/test_task.py` | 16 | Task CRUD & permissions |
+| `tests/test_comments.py` | 6 | Comment operations |
+| **Total** | **42** | **All features covered** |
+
+### Test Fixtures
+
+| Fixture | Description |
+|---------|-------------|
+| `test_client` | Async HTTP client for API testing |
+| `db_session` | Database session for direct DB access |
+| `test_company` | Creates a test company |
+| `test_admin_user` | Creates admin user |
+| `test_manager_user` | Creates manager user |
+| `test_employee_user` | Creates employee user |
+| `admin_token` | JWT token for admin |
+| `manager_token` | JWT token for manager |
+| `employee_token` | JWT token for employee |
+
+### Example Test
+
+```python
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_login(test_client: AsyncClient, test_admin_user):
+    """Test successful login."""
+    response = await test_client.post(
+        "/auth/login",
+        json={"email": "admin@test.com", "password": "password123"}
+    )
+    assert response.status_code == 200
+    assert "access_token" in response.json()
+```
+
+---
+
 ## 📊 Complete Test Flow
 
 ```
@@ -1033,6 +1111,8 @@ curl -X PATCH "http://localhost:8000/api/v1/tasks/TASK_ID/toggle-complete" ^
 
 ## ✅ Test Results
 
+### API Endpoint Tests (Manual/Requestly)
+
 **All Phases (0-6): 56/56 tests passed (100% success rate)**
 
 | Phase | Feature | Endpoints | Tests | Status |
@@ -1045,6 +1125,19 @@ curl -X PATCH "http://localhost:8000/api/v1/tasks/TASK_ID/toggle-complete" ^
 | Phase 6 | Comments | 3 | 17 | ✅ |
 | **Total** | | **20** | **56** | **✅ 100%** |
 
+### Automated Tests (pytest)
+
+**Phase 7: 42/42 tests passing (100% success rate)**
+
+| Test File | Tests | Coverage | Status |
+|-----------|-------|----------|--------|
+| `tests/test_auth.py` | 6 | Authentication & authorization | ✅ |
+| `tests/test_company.py` | 2 | Company endpoints | ✅ |
+| `tests/test_invitation.py` | 12 | Invitation workflow | ✅ |
+| `tests/test_task.py` | 16 | Task CRUD & permissions | ✅ |
+| `tests/test_comments.py` | 6 | Comment operations | ✅ |
+| **Total** | **42** | **All features** | **✅ 100%** |
+
 ---
 
-*Generated: 2026-03-18 | TaskFlow SaaS API v0.8.0*
+*Generated: 2026-03-19 | TaskFlow SaaS API v0.9.0*
