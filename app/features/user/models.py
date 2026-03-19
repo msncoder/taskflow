@@ -11,6 +11,7 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.features.company.models import Company
     from app.features.task.models import Task
+    from app.features.comment.models import Comment
 
 
 class UserRole(str, Enum):
@@ -70,6 +71,10 @@ class User(Base):
     assigned_tasks: Mapped[List["Task"]] = relationship(  # noqa: F821
         back_populates="assigned_to",
         foreign_keys="Task.assigned_to_id",
+        lazy="selectin",
+    )
+    comments: Mapped[List["Comment"]] = relationship(  # noqa: F821
+        back_populates="author",
         lazy="selectin",
     )
 

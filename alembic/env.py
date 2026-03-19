@@ -15,8 +15,8 @@ from app.features.company import models as company_models  # noqa: F401
 from app.features.user import models as user_models  # noqa: F401
 from app.features.invitation import models as invitation_models  # noqa: F401
 from app.features.task import models as task_models  # noqa: F401
+from app.features.comment import models as comment_models  # noqa: F401
 # from app.features.auth import models  # noqa: F401
-# from app.features.comment import models  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

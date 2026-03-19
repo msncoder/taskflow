@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone, date
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import String, DateTime, ForeignKey, Boolean, Text, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -76,6 +76,11 @@ class Task(Base):
         foreign_keys=[assigned_to_id],
         back_populates="assigned_tasks",
         lazy="selectin",
+    )
+    comments: Mapped[List["Comment"]] = relationship(  # noqa: F821
+        back_populates="task",
+        lazy="selectin",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
