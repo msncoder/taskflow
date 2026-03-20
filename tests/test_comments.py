@@ -30,7 +30,7 @@ class TestCommentEndpoints:
             created_by_id=test_admin_user.id,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Add comment
         response = await test_client.post(
@@ -61,7 +61,7 @@ class TestCommentEndpoints:
             created_by_id=test_admin_user.id,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Add comments
         for i in range(3):
@@ -71,7 +71,7 @@ class TestCommentEndpoints:
                 body=f"Comment {i+1}"
             )
             db_session.add(comment)
-        await db_session.flush()
+        await db_session.commit()
 
         # List comments
         response = await test_client.get(
@@ -102,7 +102,7 @@ class TestCommentEndpoints:
             created_by_id=test_admin_user.id,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Add comment
         comment = Comment(
@@ -111,7 +111,7 @@ class TestCommentEndpoints:
             body="Test comment"
         )
         db_session.add(comment)
-        await db_session.flush()
+        await db_session.commit()
 
         # Delete comment
         response = await test_client.delete(
@@ -144,7 +144,7 @@ class TestCommentEndpoints:
             created_by_id=test_admin_user.id,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Add comment by admin
         comment = Comment(
@@ -153,7 +153,7 @@ class TestCommentEndpoints:
             body="Admin comment"
         )
         db_session.add(comment)
-        await db_session.flush()
+        await db_session.commit()
 
         # Try to delete as employee
         response = await test_client.delete(
@@ -181,7 +181,7 @@ class TestCommentEndpoints:
             assigned_to_id=None,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Try to add comment
         response = await test_client.post(
@@ -208,7 +208,7 @@ class TestCommentEndpoints:
             created_by_id=test_admin_user.id,
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Try to add comment with empty body
         response = await test_client.post(

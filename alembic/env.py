@@ -83,10 +83,10 @@ def do_run_migrations(connection: Connection) -> None:
 async def run_async_migrations() -> None:
     """Run migrations in 'online' mode with async engine."""
     # Use the async URL directly from settings
+    # sslmode is handled in the URL query string for NeonDB
     connectable = create_async_engine(
         get_url(),
         poolclass=pool.NullPool,
-        connect_args={"ssl": "require"},  # SSL for Neon
     )
 
     async with connectable.connect() as connection:

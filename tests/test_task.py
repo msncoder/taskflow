@@ -100,7 +100,7 @@ class TestTaskEndpoints:
             company_id=test_company.id
         )
         db_session.add(other_manager)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.post(
             "/tasks/",
@@ -153,7 +153,7 @@ class TestTaskEndpoints:
             assigned_to_id=test_admin_user.id
         )
         db_session.add_all([task1, task2])
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.get(
             "/tasks/",
@@ -182,7 +182,7 @@ class TestTaskEndpoints:
             assigned_to_id=test_employee_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.get(
             "/tasks/",
@@ -211,7 +211,7 @@ class TestTaskEndpoints:
             created_by_id=test_admin_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.get(
             f"/tasks/{task.id}",
@@ -239,7 +239,7 @@ class TestTaskEndpoints:
             created_by_id=test_admin_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.patch(
             f"/tasks/{task.id}",
@@ -260,14 +260,24 @@ class TestTaskEndpoints:
         db_session,
     ):
         """Test non-creator cannot update task (403)."""
-        # Create task by admin
+        # Create task by different user
+        other_user = User(
+            email="otheruser@test.com",
+            full_name="Other User",
+            hashed_password="hashed",
+            role=UserRole.EMPLOYEE,
+            company_id=test_company.id
+        )
+        db_session.add(other_user)
+        await db_session.commit()
+
         task = Task(
             title="Admin Task",
             company_id=test_company.id,
-            created_by_id=test_employee_user.id + 1  # Different user
+            created_by_id=other_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.patch(
             f"/tasks/{task.id}",
@@ -295,7 +305,7 @@ class TestTaskEndpoints:
             is_completed=False
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         # Toggle complete
         response = await test_client.patch(
@@ -334,7 +344,7 @@ class TestTaskEndpoints:
             assigned_to_id=None  # Not assigned
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.patch(
             f"/tasks/{task.id}/toggle-complete",
@@ -360,7 +370,7 @@ class TestTaskEndpoints:
             assigned_to_id=None
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.patch(
             f"/tasks/{task.id}/toggle-complete",
@@ -385,7 +395,7 @@ class TestTaskEndpoints:
             created_by_id=test_admin_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.delete(
             f"/tasks/{task.id}",
@@ -416,7 +426,7 @@ class TestTaskEndpoints:
             created_by_id=test_employee_user.id
         )
         db_session.add(task)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.delete(
             f"/tasks/{task.id}",

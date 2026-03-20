@@ -84,7 +84,7 @@ async def db_session():
 async def test_company(db_session) -> Company:
     """
     Create a test company.
-    
+
     Usage:
         async def test_example(test_company):
             assert test_company.name == "Test Company"
@@ -94,7 +94,7 @@ async def test_company(db_session) -> Company:
         slug="test-company"
     )
     db_session.add(company)
-    await db_session.flush()
+    await db_session.commit()
     await db_session.refresh(company)
     return company
 
@@ -103,7 +103,7 @@ async def test_company(db_session) -> Company:
 async def test_admin_user(db_session, test_company) -> User:
     """
     Create a test admin user.
-    
+
     Usage:
         async def test_example(test_admin_user):
             assert test_admin_user.role == UserRole.ADMIN
@@ -117,7 +117,7 @@ async def test_admin_user(db_session, test_company) -> User:
         is_active=True
     )
     db_session.add(user)
-    await db_session.flush()
+    await db_session.commit()
     await db_session.refresh(user)
     return user
 
@@ -126,7 +126,7 @@ async def test_admin_user(db_session, test_company) -> User:
 async def test_manager_user(db_session, test_company) -> User:
     """
     Create a test manager user.
-    
+
     Usage:
         async def test_example(test_manager_user):
             assert test_manager_user.role == UserRole.MANAGER
@@ -140,7 +140,7 @@ async def test_manager_user(db_session, test_company) -> User:
         is_active=True
     )
     db_session.add(user)
-    await db_session.flush()
+    await db_session.commit()
     await db_session.refresh(user)
     return user
 
@@ -149,7 +149,7 @@ async def test_manager_user(db_session, test_company) -> User:
 async def test_employee_user(db_session, test_company) -> User:
     """
     Create a test employee user.
-    
+
     Usage:
         async def test_example(test_employee_user):
             assert test_employee_user.role == UserRole.EMPLOYEE
@@ -163,7 +163,7 @@ async def test_employee_user(db_session, test_company) -> User:
         is_active=True
     )
     db_session.add(user)
-    await db_session.flush()
+    await db_session.commit()
     await db_session.refresh(user)
     return user
 

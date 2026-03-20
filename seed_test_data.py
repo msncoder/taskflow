@@ -7,6 +7,8 @@ import asyncio
 from app.features.company import models as company_models  # noqa: F401
 from app.features.user import models as user_models  # noqa: F401
 from app.features.invitation import models as invitation_models  # noqa: F401
+from app.features.task import models as task_models  # noqa: F401
+from app.features.comment import models as comment_models  # noqa: F401
 
 from app.core.security import hash_password
 from app.db.session import async_session_maker

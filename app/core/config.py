@@ -1,3 +1,4 @@
+from urllib.parse import urlparse, parse_qs
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -28,6 +29,22 @@ class Settings(BaseSettings):
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_from_email: str = "noreply@taskflow.com"
+
+    @property
+    def database_url_no_query(self) -> str:
+        """Get database URL without query parameters (for asyncpg)."""
+        parsed = urlparse(self.database_url)
+        # Reconstruct URL without query params
+        base_url = f"{parsed.scheme}://{parsed.username}:{parsed.password}@{parsed.hostname}:{parsed.port}{parsed.path}"
+        return base_url
+
+    @property
+    def db_ssl_required(self) -> bool:
+        """Check if SSL is required based on sslmode query param."""
+        parsed = urlparse(self.database_url)
+        query_params = parse_qs(parsed.query)
+        sslmode = query_params.get('sslmode', [''])[0]
+        return sslmode in ('require', 'verify-full', 'verify-ca')
 
 
 settings = Settings()

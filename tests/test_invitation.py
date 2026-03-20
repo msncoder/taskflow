@@ -4,6 +4,7 @@ Test suite for Invitation endpoints.
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
+from datetime import datetime, timezone, timedelta
 
 from app.features.invitation.models import Invitation
 from app.features.user.models import User
@@ -131,10 +132,11 @@ class TestInvitationEndpoints:
             email="test@test.com",
             role="employee",
             company_id=test_company.id,
-            token="test-token-123"
+            token="test-token-123",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)
         )
         db_session.add(invitation)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.get(
             "/invitations/",
@@ -176,10 +178,11 @@ class TestInvitationEndpoints:
             email="newuser@test.com",
             role="employee",
             company_id=test_company.id,
-            token="valid-accept-token"
+            token="valid-accept-token",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)
         )
         db_session.add(invitation)
-        await db_session.flush()
+        await db_session.commit()
 
         # Accept invitation
         response = await test_client.post(
@@ -203,7 +206,7 @@ class TestInvitationEndpoints:
         user = result.scalar_one_or_none()
         assert user is not None
         assert user.full_name == "New User"
-        assert user.role.value == "employee"
+        assert user.role == "employee"
 
     async def test_accept_invalid_token(
         self,
@@ -235,10 +238,11 @@ class TestInvitationEndpoints:
             role="employee",
             company_id=test_company.id,
             token="already-accepted-token",
-            is_accepted=True
+            is_accepted=True,
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)
         )
         db_session.add(invitation)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.post(
             "/invitations/accept",
@@ -259,8 +263,6 @@ class TestInvitationEndpoints:
         db_session,
     ):
         """Test accepting expired invitation returns 400."""
-        from datetime import datetime, timezone, timedelta
-
         # Create expired invitation
         invitation = Invitation(
             email="expired@test.com",
@@ -270,7 +272,7 @@ class TestInvitationEndpoints:
             expires_at=datetime.now(timezone.utc) - timedelta(days=1)
         )
         db_session.add(invitation)
-        await db_session.flush()
+        await db_session.commit()
 
         response = await test_client.post(
             "/invitations/accept",
@@ -297,10 +299,11 @@ class TestInvitationEndpoints:
             email="duplicate@test.com",
             role="employee",
             company_id=test_company.id,
-            token="existing-token"
+            token="existing-token",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)
         )
         db_session.add(invitation)
-        await db_session.flush()
+        await db_session.commit()
 
         # Try to create duplicate
         response = await test_client.post(
