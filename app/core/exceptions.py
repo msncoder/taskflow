@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from pydantic import ValidationError
+from fastapi.encoders import jsonable_encoder
 
 
 class UnauthorizedException(HTTPException):
@@ -132,7 +133,7 @@ async def validation_exception_handler(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "error": "Validation Error",
-            "detail": exc.errors(),
+            "detail": jsonable_encoder(exc.errors()),
         },
     )
 
