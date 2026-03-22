@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
 
 from app.core.dependencies import get_db, CurrentUser, AdminUser, ManagerUser
+from app.core.email import send_invitation_email
 from app.features.invitation.schemas import (
     InviteRequest,
     AcceptInviteRequest,
@@ -11,8 +13,11 @@ from app.features.invitation.service import (
     send_invitation,
     accept_invitation,
     list_company_invitations,
+    revoke_invitation,
 )
 from app.features.auth.schemas import TokenResponse
+
+FRONTEND_URL = "http://localhost:3000"
 
 router = APIRouter(prefix="/invitations", tags=["Invitations"])
 
@@ -52,9 +57,14 @@ async def create_invitation(
         role=request.role,
     )
 
-    # TODO: Send email in background
-    # invite_link = f"{settings.frontend_url}/accept-invite?token={invitation.token}"
-    # background_tasks.add_task(send_email, invitation.email, "Invitation to TaskFlow", invite_link)
+    # Send invitation email in the background so the API response is not delayed
+    invite_link = f"{FRONTEND_URL}/accept-invite?token={invitation.token}"
+    background_tasks.add_task(
+        send_invitation_email,
+        to_email=invitation.email,
+        invite_link=invite_link,
+        inviter_name=current_user.full_name,
+    )
 
     return InvitationRead.model_validate(invitation)
 
@@ -120,4 +130,34 @@ async def accept_invitation_endpoint(
         token=request.token,
         full_name=request.full_name,
         password=request.password,
+    )
+
+
+@router.delete(
+    "/{invitation_id}",
+    status_code=204,
+    summary="Delete Invitation",
+)
+async def delete_invitation(
+    invitation_id: UUID,
+    current_user: AdminUser,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """
+    Delete (revoke) a pending invitation.
+
+    **Admin only** - Permanently deletes the invitation from the database.
+
+    Args:
+        invitation_id: UUID of the invitation to delete
+        current_user: Authenticated admin user
+        db: Database session
+
+    Raises:
+        NotFoundException: If invitation not found or belongs to another company
+    """
+    await revoke_invitation(
+        db=db,
+        invitation_id=invitation_id,
+        company_id=current_user.company_id,
     )
