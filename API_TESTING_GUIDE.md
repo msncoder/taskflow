@@ -1141,3 +1141,55 @@ curl -X PATCH "http://localhost:8000/api/v1/tasks/TASK_ID/toggle-complete" ^
 ---
 
 *Generated: 2026-03-19 | TaskFlow SaaS API v0.9.0*
+---
+
+## 🔄 RE-REGISTRATION & REACTIVATION
+
+### 19. Re-register Deactivated User (Admin)
+
+**Scenario:** A previously deactivated user wants to register a **new** company as an Admin using their old email.
+
+**Endpoint:** `POST /auth/register`
+
+**Request:**
+```json
+{
+  "email": "deactivated@example.com",
+  "full_name": "New Admin Name",
+  "password": "newpassword123",
+  "company_name": "Brand New Company"
+}
+```
+
+**Expected Behavior:**
+- 200 OK
+- Existing user record is reactivated (`is_active: true`)
+- User is linked to the newly created company
+- Full name and password are updated
+
+---
+
+### 20. Reactivate User via Invitation
+
+**Scenario:** A deactivated user is invited back to the system (same or different company).
+
+**Step 1: Send Invitation** (as Admin/Manager)
+- **Endpoint:** `POST /invitations/`
+- **Request:** `{"email": "deactivated@example.com", "role": "employee"}`
+
+**Step 2: Accept Invitation** (as User)
+- **Endpoint:** `POST /invitations/accept`
+- **Request:**
+```json
+{
+  "token": "token_from_db_or_email",
+  "full_name": "Reactivated Name",
+  "password": "newpassword123"
+}
+```
+
+**Expected Behavior:**
+- 200 OK
+- Existing user record is reactivated
+- Role and Company are updated to match the invitation
+- Authentication tokens are returned

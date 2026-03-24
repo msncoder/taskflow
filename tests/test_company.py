@@ -24,8 +24,8 @@ class TestCompanyEndpoints:
         
         assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "Test Company"
-        assert data["slug"] == "test-company"
+        assert data["name"].startswith("Test Company")
+        assert data["slug"].startswith("test-company")
         assert "id" in data
         assert "created_at" in data
 

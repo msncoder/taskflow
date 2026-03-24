@@ -61,15 +61,16 @@ async def send_invitation(
     if existing:
         raise ConflictException("An invitation for this email already exists")
 
-    # Check if user with this email already exists in the company
-    existing_user_result = await db.execute(
-        select(User).where(
-            User.email == email,
-            User.company_id == inviter.company_id,
-        )
+    # Check if user with this email already exists and is active
+    active_user_result = await db.execute(
+        select(User).where(User.email == email, User.is_active == True)
     )
-    if existing_user_result.scalar_one_or_none():
-        raise ConflictException("A user with this email already exists in your company")
+    existing_user = active_user_result.scalar_one_or_none()
+    if existing_user and existing_user.is_active:
+        if existing_user.company_id == inviter.company_id:
+            raise ConflictException("A user with this email already exists in your company")
+        else:
+            raise ConflictException("Email already registered with another company")
 
     # Generate secure token
     token = secrets.token_urlsafe(32)
@@ -86,7 +87,7 @@ async def send_invitation(
         expires_at=expires_at,
     )
     db.add(invitation)
-    await db.flush()
+    await db.commit()
     await db.refresh(invitation)
 
     # TODO: Send email with invite link using BackgroundTasks
@@ -136,32 +137,54 @@ async def accept_invitation(
     if invitation.is_expired:
         raise BadRequestException("This invitation has expired")
 
-    # Check if email already exists (user might have registered separately)
-    existing_user_result = await db.execute(
-        select(User).where(User.email == invitation.email)
-    )
-    if existing_user_result.scalar_one_or_none():
-        raise ConflictException("Email already registered")
-
     # Map invitation role to user role
     user_role = UserRole.MANAGER if invitation.role == InvitationRole.MANAGER else UserRole.EMPLOYEE
 
-    # Create user
-    hashed_pw = hash_password(password)
-    user = User(
-        email=invitation.email,
-        full_name=full_name,
-        hashed_password=hashed_pw,
-        role=user_role,
-        company_id=invitation.company_id,
-        is_active=True,
+    # Check if email already exists (active)
+    active_user_result = await db.execute(
+        select(User).where(User.email == invitation.email, User.is_active == True)
     )
-    db.add(user)
+    active_user = active_user_result.scalar_one_or_none()
+    
+    if active_user:
+        raise ConflictException("Email already registered and active")
+
+    # Look for the most recent inactive user to reactivate
+    inactive_user_result = await db.execute(
+        select(User)
+        .where(User.email == invitation.email, User.is_active == False)
+        .order_by(User.created_at.desc())
+    )
+    existing_user = inactive_user_result.scalars().first()
+
+    if existing_user:
+        
+        # Reactivate user and update details
+        hashed_pw = hash_password(password)
+        existing_user.is_active = True
+        existing_user.full_name = full_name
+        existing_user.hashed_password = hashed_pw
+        existing_user.role = user_role
+        existing_user.company_id = invitation.company_id
+        
+        user = existing_user
+    else:
+        # Create new user
+        hashed_pw = hash_password(password)
+        user = User(
+            email=invitation.email,
+            full_name=full_name,
+            hashed_password=hashed_pw,
+            role=user_role,
+            company_id=invitation.company_id,
+            is_active=True,
+        )
+        db.add(user)
 
     # Mark invitation as accepted
     invitation.is_accepted = True
 
-    await db.flush()
+    await db.commit()
     await db.refresh(user)
 
     # Generate tokens

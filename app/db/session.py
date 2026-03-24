@@ -7,11 +7,15 @@ from app.db.base import Base
 
 ssl_context = ssl.create_default_context()
 
+connect_args = {}
+if settings.db_ssl_required:
+    connect_args["ssl"] = ssl_context
+
 engine = create_async_engine(
     settings.database_url,
     echo=False,
     poolclass=NullPool,
-    connect_args={"ssl": ssl_context},
+    connect_args=connect_args,
 )
 
 async_session_maker = async_sessionmaker(

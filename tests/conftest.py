@@ -16,18 +16,15 @@ from app.core.security import hash_password
 from app.features.user.models import User, UserRole
 from app.features.company.models import Company
 from sqlalchemy import text, delete
+import time
 
 
-# Test database URL (using same DB but with transaction isolation)
-TEST_DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/taskflow_test"
+# Use the database URL from settings (configured in .env)
+from app.core.config import settings
+TEST_DATABASE_URL = settings.database_url
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator:
-    """Create event loop for async tests."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+# Removed custom event_loop fixture as it may cause hangs with modern pytest-asyncio
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
@@ -42,8 +39,8 @@ async def setup_test_database():
         await session.execute(text("DELETE FROM comments"))
         await session.execute(text("DELETE FROM tasks"))
         await session.execute(text("DELETE FROM invitations"))
-        await session.execute(text("DELETE FROM users WHERE email LIKE '%@test.com'"))
-        await session.execute(text("DELETE FROM companies WHERE slug LIKE 'test-%'"))
+        await session.execute(text("DELETE FROM users WHERE email LIKE '%@test.com' OR email LIKE 'user_%@test.com'"))
+        await session.execute(text("DELETE FROM companies WHERE slug LIKE 'test-%' OR slug LIKE 'company-%'"))
         await session.commit()
 
     yield
@@ -89,9 +86,10 @@ async def test_company(db_session) -> Company:
         async def test_example(test_company):
             assert test_company.name == "Test Company"
     """
+    suffix = str(int(time.time()))[-6:]
     company = Company(
-        name="Test Company",
-        slug="test-company"
+        name=f"Test Company {suffix}",
+        slug=f"test-company-{suffix}"
     )
     db_session.add(company)
     await db_session.commit()

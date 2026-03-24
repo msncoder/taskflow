@@ -1,7 +1,7 @@
 # TaskFlow SaaS — Backend Test Report
 
-**Generated:** 2026-03-19  
-**Version:** v0.9.0  
+**Generated:** 2026-03-24  
+**Version:** v0.9.1  
 **Test Framework:** pytest 9.0.2 + pytest-asyncio
 
 ---
@@ -10,8 +10,8 @@
 
 ### Automated Tests (pytest)
 
-**Total Tests:** 42  
-**Status:** ✅ All tests written and ready to run
+**Total Tests:** 46  
+**Status:** ✅ All tests passing
 
 | Test File | Tests | Status | Coverage |
 |-----------|-------|--------|----------|
@@ -21,6 +21,7 @@
 | `tests/test_invitation.py` | 12 | ✅ | Invitation workflow |
 | `tests/test_task.py` | 16 | ✅ | Task CRUD & permissions |
 | `tests/test_comments.py` | 6 | ✅ | Comment operations |
+| `tests/test_re_registration.py` | 4 | ✅ | Re-registration & Reactivation |
 
 ### API Endpoint Tests (Manual/Requestly)
 
@@ -103,6 +104,13 @@
 - ✅ Comment without task access → 404
 - ✅ Empty body validation → 422
 
+### Phase 7: Re-registration & Reactivation (4 tests)
+
+- ✅ Re-register via invitation → 200, user reactivated
+- ✅ Re-register to different company → 200, company updated
+- ✅ Register admin with deactivated email → 200, new company created
+- ✅ Invite active user fails → 409
+
 ---
 
 ## 📁 Test Files
@@ -114,7 +122,8 @@ backend/tests/
 ├── test_company.py          # 35 lines - 2 tests
 ├── test_invitation.py       # 316 lines - 12 tests
 ├── test_task.py             # 447 lines - 16 tests
-└── test_comments.py         # 213 lines - 6 tests
+├── test_comments.py         # 213 lines - 6 tests
+└── test_re_registration.py  # 203 lines - 4 tests
 ```
 
 **Total:** 1,387 lines of test code
@@ -175,7 +184,8 @@ start htmlcov\index.html
 | Invitation | 12 | 100% |
 | Tasks | 16 | 100% |
 | Comments | 6 | 100% |
-| **Total** | **42** | **100%** |
+| Re-registration | 4 | 100% |
+| **Total** | **46** | **100%** |
 
 ### API Endpoint Tests (Manual)
 
@@ -203,4 +213,4 @@ start htmlcov\index.html
 
 ---
 
-*Test Report Generated: 2026-03-19 | TaskFlow SaaS Backend v0.9.0*
+*Test Report Generated: 2026-03-24 | TaskFlow SaaS Backend v0.9.1*

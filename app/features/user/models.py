@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import TYPE_CHECKING, List
 
-from sqlalchemy import String, DateTime, ForeignKey, Boolean
+from sqlalchemy import String, DateTime, ForeignKey, Boolean, Index, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -34,7 +34,6 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(
         String(255),
-        unique=True,
         nullable=False,
         index=True,
     )
@@ -59,6 +58,16 @@ class User(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+    
+    __table_args__ = (
+        Index(
+            "idx_user_email_active",
+            "email",
+            unique=True,
+            postgresql_where=text("is_active = true"),
+            sqlite_where=text("is_active = 1"),
+        ),
     )
 
     # Relationships

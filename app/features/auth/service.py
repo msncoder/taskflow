@@ -22,28 +22,55 @@ async def register_admin(db: AsyncSession, data: AdminRegisterRequest) -> dict:
     Raises:
         ConflictException: If email already exists
     """
-    # Check if email already exists
-    existing_user = await db.execute(select(User).where(User.email == data.email))
-    if existing_user.scalar_one_or_none():
-        raise ConflictException("Email already registered")
-    
-    # Create company
-    company = await create_company(db, data.company_name)
-    
-    # Hash password
-    hashed_pw = hash_password(data.password)
-    
-    # Create admin user
-    user = User(
-        email=data.email,
-        full_name=data.full_name,
-        hashed_password=hashed_pw,
-        role=UserRole.ADMIN,
-        company_id=company.id,
-        is_active=True,
+    # Check if an active user with this email already exists
+    active_user_result = await db.execute(
+        select(User).where(User.email == data.email, User.is_active == True)
     )
-    db.add(user)
-    await db.flush()
+    active_user = active_user_result.scalar_one_or_none()
+    
+    if active_user:
+        raise ConflictException("Email already registered and active")
+    
+    # Check if an inactive user with this email exists to reactivate
+    inactive_user_result = await db.execute(
+        select(User)
+        .where(User.email == data.email, User.is_active == False)
+        .order_by(User.created_at.desc())
+    )
+    existing_user = inactive_user_result.scalars().first()
+    
+    if existing_user:
+        
+        # Create company
+        company = await create_company(db, data.company_name)
+        
+        # Reactivate user and update details
+        hashed_pw = hash_password(data.password)
+        existing_user.is_active = True
+        existing_user.full_name = data.full_name
+        existing_user.hashed_password = hashed_pw
+        existing_user.role = UserRole.ADMIN
+        existing_user.company_id = company.id
+        
+        user = existing_user
+    else:
+        # Create company
+        company = await create_company(db, data.company_name)
+        
+        # Hash password
+        hashed_pw = hash_password(data.password)
+        
+        # Create admin user
+        user = User(
+            email=data.email,
+            full_name=data.full_name,
+            hashed_password=hashed_pw,
+            role=UserRole.ADMIN,
+            company_id=company.id,
+            is_active=True,
+        )
+        db.add(user)
+    await db.commit()
     await db.refresh(user)
     
     # Generate tokens
